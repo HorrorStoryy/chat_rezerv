@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Chat, Employee, Message } from '../types';
+import { Chat, Employee, Message, Template } from '../types';
 import { formatTime, formatFullDate, createMessage } from '../store';
 import { RichTextEditor } from './RichTextEditor';
 
@@ -7,6 +7,7 @@ interface ChatWindowProps {
   chat: Chat;
   currentUser: Employee;
   employees: Employee[];
+  templates: Template[];
   onSendMessage: (message: Message) => void;
   onShareChat: (chatId: string) => void;
   onTakeChat: (chatId: string) => void;
@@ -15,12 +16,15 @@ interface ChatWindowProps {
   onUpdateChat: (chat: Chat) => void;
   onDeleteMessage: (chatId: string, messageId: string) => void;
   onToggleImportant: (chatId: string, messageId: string) => void;
+  onManageTemplates?: () => void;
+  canManageTemplates?: boolean;
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({
   chat,
   currentUser,
   employees,
+  templates,
   onSendMessage,
   onShareChat,
   onTakeChat,
@@ -29,6 +33,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onUpdateChat,
   onDeleteMessage,
   onToggleImportant,
+  onManageTemplates,
+  canManageTemplates,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
@@ -247,7 +253,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
 
       {/* Rich Text Editor */}
       {!chat.isClosed ? (
-        <RichTextEditor onSend={handleSend} placeholder="Введите сообщение..." />
+        <RichTextEditor 
+          onSend={handleSend} 
+          placeholder="Введите сообщение..." 
+          templates={templates}
+          onManageTemplates={onManageTemplates}
+          canManageTemplates={canManageTemplates}
+        />
       ) : (
         <div className="bg-gray-100 border-t border-gray-200 px-4 py-3 text-center text-sm text-gray-500">
           Этот чат закрыт. Переоткройте его, чтобы продолжить переписку.

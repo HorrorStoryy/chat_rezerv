@@ -35,7 +35,15 @@ export const Login: React.FC<LoginProps> = ({ employees, onLogin }) => {
               </div>
               <div className="text-left">
                 <p className="font-medium text-gray-800 group-hover:text-indigo-700">{emp.name}</p>
-                <p className="text-xs text-gray-400">Сотрудник поддержки</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs text-gray-400">Сотрудник поддержки</p>
+                  {emp.role === 'admin' && (
+                    <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">Админ</span>
+                  )}
+                  {emp.role === 'editor' && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">Редактор</span>
+                  )}
+                </div>
               </div>
               <svg className="w-5 h-5 text-gray-300 group-hover:text-indigo-500 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

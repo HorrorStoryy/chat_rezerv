@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Employee, Chat, Message, AppState } from './types';
+import { Employee, Chat, Message, AppState, Template } from './types';
 import { loadState, saveState, createChat, createMessage } from './store';
 import { Login } from './components/Login';
 import { ChatList } from './components/ChatList';
 import { ChatWindow } from './components/ChatWindow';
 import { Sidebar } from './components/Sidebar';
+import { TemplateManager } from './components/TemplateManager';
 
 function App() {
   const [state, setState] = useState<AppState>(loadState);
@@ -213,6 +214,45 @@ function App() {
     }));
   }, []);
 
+  const [showTemplateManager, setShowTemplateManager] = useState(false);
+
+  const canManageTemplates = currentUser?.role === 'admin' || currentUser?.role === 'editor';
+
+  const handleAddTemplate = useCallback((title: string, content: string) => {
+    setState((prev) => {
+      const newTemplate: Template = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
+        title,
+        content,
+        createdBy: prev.currentUser?.id || '',
+        createdByName: prev.currentUser?.name || '',
+        createdAt: Date.now(),
+      };
+      return {
+        ...prev,
+        templates: [...prev.templates, newTemplate],
+      };
+    });
+  }, []);
+
+  const handleEditTemplate = useCallback((id: string, title: string, content: string) => {
+    setState((prev) => ({
+      ...prev,
+      templates: prev.templates.map((tpl) =>
+        tpl.id === id
+          ? { ...tpl, title, content, updatedAt: Date.now() }
+          : tpl
+      ),
+    }));
+  }, []);
+
+  const handleDeleteTemplate = useCallback((id: string) => {
+    setState((prev) => ({
+      ...prev,
+      templates: prev.templates.filter((tpl) => tpl.id !== id),
+    }));
+  }, []);
+
   // Login screen
   if (!currentUser) {
     return <Login employees={employees} onLogin={handleLogin} />;
@@ -240,7 +280,15 @@ function App() {
             >
               {currentUser.avatar}
             </div>
-            <span className="text-sm text-gray-700 font-medium">{currentUser.name}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-700 font-medium">{currentUser.name}</span>
+              {currentUser.role === 'admin' && (
+                <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full">Админ</span>
+              )}
+              {currentUser.role === 'editor' && (
+                <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">Редактор</span>
+              )}
+            </div>
           </div>
           <button
             onClick={handleLogout}
@@ -271,6 +319,7 @@ function App() {
               chat={selectedChat}
               currentUser={currentUser}
               employees={employees}
+              templates={state.templates}
               onSendMessage={handleSendMessage}
               onShareChat={handleShareChat}
               onTakeChat={handleTakeChat}
@@ -279,6 +328,8 @@ function App() {
               onUpdateChat={handleUpdateChat}
               onDeleteMessage={handleDeleteMessage}
               onToggleImportant={handleToggleImportant}
+              onManageTemplates={() => setShowTemplateManager(true)}
+              canManageTemplates={canManageTemplates}
             />
             {showSidebar && (
               <Sidebar
@@ -318,6 +369,18 @@ function App() {
           </button>
         )}
       </div>
+
+      {/* Template Manager Modal */}
+      {showTemplateManager && canManageTemplates && (
+        <TemplateManager
+          templates={state.templates}
+          currentUser={currentUser}
+          onAddTemplate={handleAddTemplate}
+          onEditTemplate={handleEditTemplate}
+          onDeleteTemplate={handleDeleteTemplate}
+          onClose={() => setShowTemplateManager(false)}
+        />
+      )}
     </div>
   );
 }

@@ -3,6 +3,17 @@ export interface Employee {
   name: string;
   avatar: string;
   color: string;
+  role: 'admin' | 'editor' | 'user';
+}
+
+export interface Template {
+  id: string;
+  title: string;
+  content: string;
+  createdBy: string;
+  createdByName: string;
+  createdAt: number;
+  updatedAt?: number;
 }
 
 export interface Message {
@@ -42,5 +53,6 @@ export interface AppState {
   currentUser: Employee | null;
   chats: Chat[];
   employees: Employee[];
+  templates: Template[];
   nextChatNumber: number;
 }

@@ -1,40 +1,24 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { Template } from '../types';
 
 interface RichTextEditorProps {
   onSend: (html: string, text: string) => void;
   placeholder?: string;
+  templates?: Template[];
+  onManageTemplates?: () => void;
+  canManageTemplates?: boolean;
 }
 
 export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onSend,
   placeholder = 'Введите сообщение...',
+  templates = [],
+  onManageTemplates,
+  canManageTemplates = false,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [isEmpty, setIsEmpty] = useState(true);
   const [showTemplates, setShowTemplates] = useState(false);
-
-  const templates = [
-    {
-      title: 'Приветствие',
-      content: '<p>Здравствуйте!</p><p>Спасибо за обращение в нашу поддержку. Чем могу помочь?</p>',
-    },
-    {
-      title: 'Уточнение проблемы',
-      content: '<p>Уточните, пожалуйста:</p><ul><li>Когда возникла проблема?</li><li>Что именно не работает?</li><li>Появляются ли какие-то ошибки?</li></ul>',
-    },
-    {
-      title: 'Решение найдено',
-      content: '<p>Отличные новости! Мы нашли решение вашей проблемы.</p><p><strong>Что нужно сделать:</strong></p><ol><li>Первый шаг</li><li>Второй шаг</li><li>Третий шаг</li></ol><p>Если возникнут вопросы — обращайтесь!</p>',
-    },
-    {
-      title: 'Передача специалисту',
-      content: '<p>Ваш вопрос требует дополнительной экспертизы.</p><p>Я передам его профильному специалисту, который свяжется с вами в ближайшее время.</p>',
-    },
-    {
-      title: 'Завершение',
-      content: '<p>Был рад помочь!</p><p>Если появятся дополнительные вопросы — не стесняйтесь обращаться.</p><p>Хорошего дня!</p>',
-    },
-  ];
 
   useEffect(() => {
     if (editorRef.current) {
@@ -118,11 +102,9 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const text = clipboardData.getData('text/plain');
 
     if (html) {
-      // Clean and insert HTML
       const cleanedHtml = cleanHtml(html);
       document.execCommand('insertHTML', false, cleanedHtml);
     } else if (text) {
-      // Convert plain text to HTML with preserved line breaks
       const htmlText = textToHtml(text);
       document.execCommand('insertHTML', false, htmlText);
     }
@@ -131,21 +113,17 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   const cleanHtml = (html: string): string => {
-    // Create a temporary div to parse HTML
     const temp = document.createElement('div');
     temp.innerHTML = html;
 
-    // Remove all style attributes and classes
     const elements = temp.querySelectorAll('*');
     elements.forEach((el) => {
       el.removeAttribute('style');
       el.removeAttribute('class');
     });
 
-    // Convert to paragraphs if needed
     let cleaned = temp.innerHTML;
     
-    // If no block elements, wrap in paragraph
     if (!cleaned.match(/<(p|div|h[1-6]|ul|ol|li|blockquote)/i)) {
       cleaned = `<p>${cleaned}</p>`;
     }
@@ -154,10 +132,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   const textToHtml = (text: string): string => {
-    // Split by newlines
     const lines = text.split('\n');
     
-    // Check if it looks like a list
     const isList = lines.every(line => line.trim().match(/^[-*•]\s/) || line.trim() === '');
     
     if (isList && lines.length > 1) {
@@ -168,7 +144,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       return `<ul>${listItems}</ul>`;
     }
 
-    // Check if it looks like numbered list
     const isNumberedList = lines.every(line => line.trim().match(/^\d+[.)]\s/) || line.trim() === '');
     
     if (isNumberedList && lines.length > 1) {
@@ -179,7 +154,6 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       return `<ol>${listItems}</ol>`;
     }
 
-    // Regular text - preserve line breaks
     return lines
       .map(line => {
         if (line.trim() === '') return '<br>';
@@ -213,7 +187,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     updateEmptyState();
   };
 
-  const insertTemplate = (template: typeof templates[0]) => {
+  const insertTemplate = (template: Template) => {
     if (editorRef.current) {
       editorRef.current.innerHTML = template.content;
       updateEmptyState();
@@ -247,10 +221,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     input.click();
   };
 
+  const getPlainText = (html: string) => {
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    return temp.textContent || temp.innerText || '';
+  };
+
   return (
     <div className="bg-white border-t border-gray-200">
       {/* Toolbar */}
-      <div className="flex items-center gap-1 px-4 py-2 border-b border-gray-100">
+      <div className="flex items-center gap-1 px-4 py-2 border-b border-gray-100 flex-wrap">
         <button
           onClick={() => execCommand('bold')}
           className="w-8 h-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-600 font-bold transition-colors"
@@ -327,28 +307,55 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <span>Шаблоны</span>
+            <span className="text-xs bg-gray-200 text-gray-600 px-1.5 rounded-full">{templates.length}</span>
           </button>
           
           {showTemplates && (
-            <div className="absolute bottom-full left-0 mb-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+            <div className="absolute bottom-full left-0 mb-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
               <div className="p-2">
-                <p className="text-xs font-medium text-gray-500 px-2 py-1">Быстрые ответы</p>
-                {templates.map((template, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => insertTemplate(template)}
-                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 rounded-md transition-colors"
-                  >
-                    {template.title}
-                  </button>
-                ))}
+                <div className="flex items-center justify-between px-2 py-1 mb-1">
+                  <p className="text-xs font-medium text-gray-500">Шаблоны ответов</p>
+                  {canManageTemplates && onManageTemplates && (
+                    <button
+                      onClick={() => {
+                        setShowTemplates(false);
+                        onManageTemplates();
+                      }}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      Управление
+                    </button>
+                  )}
+                </div>
+                {templates.length === 0 ? (
+                  <p className="text-xs text-gray-400 px-2 py-3 text-center">Нет шаблонов</p>
+                ) : (
+                  <div className="max-h-60 overflow-y-auto">
+                    {templates.map((template) => (
+                      <button
+                        key={template.id}
+                        onClick={() => insertTemplate(template)}
+                        className="w-full text-left px-3 py-2 hover:bg-indigo-50 rounded-md transition-colors group"
+                      >
+                        <p className="text-sm font-medium text-gray-700 group-hover:text-indigo-700">{template.title}</p>
+                        <p className="text-xs text-gray-400 truncate mt-0.5">
+                          {getPlainText(template.content).substring(0, 60)}...
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
         
         <div className="ml-auto text-xs text-gray-400">
-          💡 Ctrl+V для вставки скриншотов
+          💡 Ctrl+V — скриншот
         </div>
       </div>
 

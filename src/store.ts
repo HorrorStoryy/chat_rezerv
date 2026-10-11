@@ -1,13 +1,56 @@
-import { Employee, Chat, Message, AppState } from './types';
+import { Employee, Chat, Message, AppState, Template } from './types';
 
 const STORAGE_KEY = 'support-chat-app';
 
 const defaultEmployees: Employee[] = [
-  { id: 'emp1', name: 'Анна Иванова', avatar: 'АИ', color: '#6366f1' },
-  { id: 'emp2', name: 'Петр Сидоров', avatar: 'ПС', color: '#0891b2' },
-  { id: 'emp3', name: 'Мария Козлова', avatar: 'МК', color: '#059669' },
-  { id: 'emp4', name: 'Дмитрий Волков', avatar: 'ДВ', color: '#d97706' },
-  { id: 'emp5', name: 'Елена Новикова', avatar: 'ЕН', color: '#dc2626' },
+  { id: 'emp1', name: 'Анна Иванова', avatar: 'АИ', color: '#6366f1', role: 'admin' },
+  { id: 'emp2', name: 'Петр Сидоров', avatar: 'ПС', color: '#0891b2', role: 'editor' },
+  { id: 'emp3', name: 'Мария Козлова', avatar: 'МК', color: '#059669', role: 'user' },
+  { id: 'emp4', name: 'Дмитрий Волков', avatar: 'ДВ', color: '#d97706', role: 'user' },
+  { id: 'emp5', name: 'Елена Новикова', avatar: 'ЕН', color: '#dc2626', role: 'user' },
+];
+
+const defaultTemplates: Template[] = [
+  {
+    id: 'tpl1',
+    title: 'Приветствие',
+    content: '<p>Здравствуйте!</p><p>Спасибо за обращение в нашу поддержку. Чем могу помочь?</p>',
+    createdBy: 'system',
+    createdByName: 'Система',
+    createdAt: Date.now(),
+  },
+  {
+    id: 'tpl2',
+    title: 'Уточнение проблемы',
+    content: '<p>Уточните, пожалуйста:</p><ul><li>Когда возникла проблема?</li><li>Что именно не работает?</li><li>Появляются ли какие-то ошибки?</li></ul>',
+    createdBy: 'system',
+    createdByName: 'Система',
+    createdAt: Date.now(),
+  },
+  {
+    id: 'tpl3',
+    title: 'Решение найдено',
+    content: '<p>Отличные новости! Мы нашли решение вашей проблемы.</p><p><strong>Что нужно сделать:</strong></p><ol><li>Первый шаг</li><li>Второй шаг</li><li>Третий шаг</li></ol><p>Если возникнут вопросы — обращайтесь!</p>',
+    createdBy: 'system',
+    createdByName: 'Система',
+    createdAt: Date.now(),
+  },
+  {
+    id: 'tpl4',
+    title: 'Передача специалисту',
+    content: '<p>Ваш вопрос требует дополнительной экспертизы.</p><p>Я передам его профильному специалисту, который свяжется с вами в ближайшее время.</p>',
+    createdBy: 'system',
+    createdByName: 'Система',
+    createdAt: Date.now(),
+  },
+  {
+    id: 'tpl5',
+    title: 'Завершение',
+    content: '<p>Был рад помочь!</p><p>Если появятся дополнительные вопросы — не стесняйтесь обращаться.</p><p>Хорошего дня!</p>',
+    createdBy: 'system',
+    createdByName: 'Система',
+    createdAt: Date.now(),
+  },
 ];
 
 function getDefaultState(): AppState {
@@ -15,6 +58,7 @@ function getDefaultState(): AppState {
     currentUser: null,
     chats: [],
     employees: defaultEmployees,
+    templates: defaultTemplates,
     nextChatNumber: 1001,
   };
 }
