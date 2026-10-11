@@ -20,10 +20,8 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Проверяем текущую сессию
     checkSession();
 
-    // Слушаем изменения авторизации
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN' && session) {
@@ -122,9 +120,9 @@ function App() {
     <ChatPage
       user={user}
       employeeName={userProfile?.name || user.email}
+      employeeRole={userProfile?.role || 'employee'}
       onLogout={handleLogout}
       onGoToAdmin={handleGoToAdmin}
-      isAdmin={userProfile?.role === 'admin'}
     />
   );
 }
