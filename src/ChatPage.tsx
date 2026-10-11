@@ -94,28 +94,53 @@ export const ChatPage: React.FC<ChatPageProps> = ({ user, employeeName, employee
 
   // Создание чата
   const handleCreateChat = async () => {
-    const maxNumber = chats.reduce((max, c) => Math.max(max, c.number), 1000);
-    const newNumber = maxNumber + 1;
+    try {
+      // Находим следующий свободный номер
+      const existingNumbers = chats.map(c => c.number);
+      let newNumber = 1001;
+      while (existingNumbers.includes(newNumber)) {
+        newNumber++;
+      }
 
-    const { data, error } = await supabase.from('chats').insert({
-      number: newNumber,
-      title: `Чат #${newNumber}`,
-      created_by: user.id,
-      created_by_name: employeeName,
-      assigned_to: user.id,
-      assigned_to_name: employeeName,
-    }).select().single();
-
-    if (data) {
-      setSelectedChatId(data.id);
-      // Системное сообщение
-      await supabase.from('messages').insert({
-        chat_id: data.id,
-        text: `Чат #${newNumber} создан сотрудником ${employeeName}`,
-        author: 'Система',
-        user_id: user.id,
-        msg_type: 'system',
+      console.log('🔍 Создание чата:', {
+        newNumber,
+        userId: user.id,
+        employeeName,
       });
+
+      const { data, error } = await supabase
+        .from('chats')
+        .insert({
+          number: newNumber,
+          title: `Чат #${newNumber}`,
+          created_by_name: employeeName,
+          assigned_to_name: employeeName,
+        })
+        .select()
+        .single();
+
+      console.log('📝 Результат создания чата:', { data, error });
+
+      if (error) {
+        console.error('❌ Ошибка создания чата:', error);
+        alert(`Ошибка создания чата: ${error.message}\n\nКод: ${error.code}\nДетали: ${JSON.stringify(error.details || 'нет')}`);
+        return;
+      }
+
+      if (data) {
+        setSelectedChatId(data.id);
+        // Системное сообщение
+        await supabase.from('messages').insert({
+          chat_id: data.id,
+          text: `Чат #${newNumber} создан сотрудником ${employeeName}`,
+          author: 'Система',
+          user_id: user.id,
+          msg_type: 'system',
+        });
+      }
+    } catch (err) {
+      console.error('❌ Исключение при создании чата:', err);
+      alert(`Произошла ошибка: ${err instanceof Error ? err.message : 'неизвестная ошибка'}`);
     }
   };
 
