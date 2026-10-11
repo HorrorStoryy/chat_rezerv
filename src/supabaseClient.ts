@@ -1,10 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://cxbfzmfgttcxqwftlrg.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-if (!supabaseAnonKey || supabaseAnonKey === 'ВСТАВЬ_СЮДА_СВОЙ_КЛЮЧ') {
-  console.warn('⚠️ Supabase Anon Key не установлен. Вставьте ключ в файл .env');
-}
+const supabaseUrl = 'https://cxbfzmfgttcxqwftlrg.supabase.co';
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4YmZ6bWZndHR0Y3hxd2Z0cmxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3Mzg1OTIsImV4cCI6MjEwNzMxNDU5Mn0.X_IAAJf1Sf5AnE-rJg9pdfTNaZDROsZk-WLvZwszNrY';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
