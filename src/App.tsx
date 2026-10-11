@@ -257,6 +257,7 @@ function App() {
         <ChatList
           chats={chats}
           currentUser={currentUser}
+          employees={employees}
           selectedChatId={selectedChatId}
           onSelectChat={setSelectedChatId}
           onCreateChat={handleCreateChat}

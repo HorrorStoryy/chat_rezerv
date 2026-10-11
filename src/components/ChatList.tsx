@@ -4,6 +4,7 @@ import { Chat, Employee } from '../types';
 interface ChatListProps {
   chats: Chat[];
   currentUser: Employee;
+  employees: Employee[];
   selectedChatId: string | null;
   onSelectChat: (chatId: string) => void;
   onCreateChat: () => void;
@@ -13,21 +14,28 @@ interface ChatListProps {
 export const ChatList: React.FC<ChatListProps> = ({
   chats,
   currentUser,
+  employees,
   selectedChatId,
   onSelectChat,
   onCreateChat,
   onSearch,
 }) => {
-  const [activeTab, setActiveTab] = useState<'my' | 'shared' | 'closed'>('my');
+  const [activeTab, setActiveTab] = useState<'my' | 'shared' | 'closed' | 'all'>('my');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showStats, setShowStats] = useState(false);
 
   const myChats = chats.filter(
     (c) => c.assignedTo === currentUser.id && !c.isShared && !c.isClosed
   );
   const sharedChats = chats.filter((c) => c.isShared && !c.isClosed);
   const closedChats = chats.filter((c) => c.isClosed);
+  const allChats = chats.filter((c) => !c.isClosed);
 
-  const displayChats = activeTab === 'my' ? myChats : activeTab === 'shared' ? sharedChats : closedChats;
+  const displayChats = 
+    activeTab === 'my' ? myChats : 
+    activeTab === 'shared' ? sharedChats : 
+    activeTab === 'closed' ? closedChats : 
+    allChats;
 
   const filteredChats = displayChats.filter((chat) => {
     if (!searchQuery) return true;
@@ -41,6 +49,10 @@ export const ChatList: React.FC<ChatListProps> = ({
     
     // Поиск по заголовку
     if (chat.title.toLowerCase().includes(q)) return true;
+    
+    // Поиск по имени назначенного сотрудника
+    const assignedEmp = employees.find(e => e.id === chat.assignedTo);
+    if (assignedEmp && assignedEmp.name.toLowerCase().includes(q)) return true;
     
     // Поиск по содержимому сообщений
     const hasMatchInMessages = chat.messages.some((msg) => {
@@ -71,22 +83,69 @@ export const ChatList: React.FC<ChatListProps> = ({
     onSearch(e.target.value);
   };
 
+  // Статистика по сотрудникам
+  const getEmployeeStats = () => {
+    return employees.map(emp => {
+      const empChats = chats.filter(c => c.assignedTo === emp.id && !c.isClosed);
+      return {
+        employee: emp,
+        activeChats: empChats.length,
+      };
+    }).sort((a, b) => b.activeChats - a.activeChats);
+  };
+
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full">
       {/* Header */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold text-gray-800">Чаты</h2>
-          <button
-            onClick={onCreateChat}
-            className="w-8 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center transition-colors"
-            title="Создать новый чат"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowStats(!showStats)}
+              className="w-8 h-8 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg flex items-center justify-center transition-colors"
+              title="Статистика сотрудников"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+            </button>
+            <button
+              onClick={onCreateChat}
+              className="w-8 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center justify-center transition-colors"
+              title="Создать новый чат"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </button>
+          </div>
         </div>
+
+        {/* Stats Panel */}
+        {showStats && (
+          <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <p className="text-xs font-medium text-gray-600 mb-2">Нагрузка сотрудников:</p>
+            <div className="space-y-2">
+              {getEmployeeStats().map(({ employee, activeChats }) => (
+                <div key={employee.id} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold"
+                      style={{ backgroundColor: employee.color }}
+                    >
+                      {employee.avatar}
+                    </div>
+                    <span className="text-xs text-gray-700">{employee.name}</span>
+                  </div>
+                  <span className="text-xs font-medium text-gray-600">
+                    {activeChats} {activeChats === 1 ? 'чат' : activeChats < 5 ? 'чата' : 'чатов'}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Search */}
         <div className="relative">
@@ -113,6 +172,16 @@ export const ChatList: React.FC<ChatListProps> = ({
             }`}
           >
             Мои ({myChats.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeTab === 'all'
+                ? 'bg-white text-indigo-700 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Все ({allChats.length})
           </button>
           <button
             onClick={() => setActiveTab('shared')}
@@ -142,12 +211,14 @@ export const ChatList: React.FC<ChatListProps> = ({
         {filteredChats.length === 0 ? (
           <div className="p-6 text-center text-gray-400 text-sm">
             {activeTab === 'my' ? 'Нет чатов. Создайте новый!' : 
+             activeTab === 'all' ? 'Нет активных чатов' :
              activeTab === 'shared' ? 'Нет общих чатов' : 
              'Нет закрытых чатов'}
           </div>
         ) : (
           filteredChats.map((chat) => {
             const lastMsg = getLastMessage(chat);
+            const assignedEmp = employees.find(e => e.id === chat.assignedTo);
             return (
               <button
                 key={chat.id}
@@ -175,6 +246,17 @@ export const ChatList: React.FC<ChatListProps> = ({
                 </div>
                 {chat.companyName && (
                   <p className="text-xs text-gray-500 mb-1">{chat.companyName}</p>
+                )}
+                {activeTab === 'all' && assignedEmp && (
+                  <div className="flex items-center gap-1 mb-1">
+                    <div
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-white text-[8px] font-semibold"
+                      style={{ backgroundColor: assignedEmp.color }}
+                    >
+                      {assignedEmp.avatar}
+                    </div>
+                    <span className="text-xs text-gray-500">{assignedEmp.name}</span>
+                  </div>
                 )}
                 {lastMsg && (
                   <p className="text-xs text-gray-400 truncate">
