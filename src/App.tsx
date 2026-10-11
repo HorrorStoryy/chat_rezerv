@@ -69,7 +69,7 @@ function App() {
           chatId,
           authorId: 'system',
           authorName: 'Система',
-          content: `Чат #${chat.number} перемещён в общую папку сотрудником ${prev.currentUser?.name}`,
+          content: `Чат #${chat.number} перемещён в общую папку сотрудником <strong>${prev.currentUser?.name}</strong>`,
           timestamp: Date.now(),
           type: 'system',
         };
@@ -95,7 +95,7 @@ function App() {
           chatId,
           authorId: 'system',
           authorName: 'Система',
-          content: `Чат #${chat.number} взят в работу сотрудником ${currentUser.name}`,
+          content: `Чат #${chat.number} взят в работу сотрудником <strong>${currentUser.name}</strong>`,
           timestamp: Date.now(),
           type: 'system',
         };

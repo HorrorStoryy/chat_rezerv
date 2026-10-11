@@ -43,6 +43,12 @@ export const ChatList: React.FC<ChatListProps> = ({
     return msgs.length > 0 ? msgs[msgs.length - 1] : null;
   };
 
+  const getPlainText = (html: string) => {
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    return temp.textContent || temp.innerText || '';
+  };
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     onSearch(e.target.value);
@@ -136,7 +142,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                 )}
                 {lastMsg && (
                   <p className="text-xs text-gray-400 truncate">
-                    {lastMsg.type === 'image' ? '📷 Фото' : lastMsg.content.substring(0, 50)}
+                    {lastMsg.type === 'image' ? '📷 Фото' : getPlainText(lastMsg.content).substring(0, 50)}
                   </p>
                 )}
                 <div className="flex items-center justify-between mt-1">

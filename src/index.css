@@ -37,7 +37,8 @@ img {
 
 /* Focus styles */
 textarea:focus,
-input:focus {
+input:focus,
+[contenteditable]:focus {
   outline: none;
 }
 
@@ -55,4 +56,122 @@ input:focus {
 
 .message-enter {
   animation: slideIn 0.2s ease-out;
+}
+
+/* Rich text editor styles */
+[contenteditable] {
+  min-height: 100px;
+}
+
+[contenteditable]:empty:before {
+  content: attr(placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+[contenteditable] p {
+  margin: 0 0 0.5em 0;
+}
+
+[contenteditable] p:last-child {
+  margin-bottom: 0;
+}
+
+[contenteditable] ul,
+[contenteditable] ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+[contenteditable] li {
+  margin: 0.25em 0;
+}
+
+[contenteditable] a {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+[contenteditable] a:hover {
+  color: #4338ca;
+}
+
+/* Message content styles */
+.message-content p {
+  margin: 0 0 0.5em 0;
+}
+
+.message-content p:last-child {
+  margin-bottom: 0;
+}
+
+.message-content ul,
+.message-content ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.message-content li {
+  margin: 0.25em 0;
+}
+
+.message-content a {
+  color: #818cf8;
+  text-decoration: underline;
+}
+
+.message-content a:hover {
+  color: #a5b4fc;
+}
+
+.message-content strong {
+  font-weight: 600;
+}
+
+.message-content em {
+  font-style: italic;
+}
+
+/* Prose styles for messages */
+.prose {
+  line-height: 1.6;
+}
+
+.prose p {
+  margin: 0 0 0.5em 0;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0.5em 0;
+  padding-left: 1.5em;
+}
+
+.prose li {
+  margin: 0.25em 0;
+}
+
+.prose a {
+  color: #818cf8;
+  text-decoration: underline;
+}
+
+.prose a:hover {
+  color: #a5b4fc;
+}
+
+.prose-invert a {
+  color: #c7d2fe;
+}
+
+.prose-invert a:hover {
+  color: #e0e7ff;
+}
+
+.prose-sm {
+  font-size: 0.875rem;
 }

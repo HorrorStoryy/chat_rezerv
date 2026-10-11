@@ -61,7 +61,7 @@ export function createChat(creator: Employee, nextNumber: number): { chat: Chat;
         chatId: '',
         authorId: 'system',
         authorName: 'Система',
-        content: `Чат #${nextNumber} создан сотрудником ${creator.name}`,
+        content: `Чат #${nextNumber} создан сотрудником <strong>${creator.name}</strong>`,
         timestamp: Date.now(),
         type: 'system',
       },
