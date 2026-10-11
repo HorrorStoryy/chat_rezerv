@@ -119,6 +119,57 @@ function App() {
     }));
   }, []);
 
+  const handleCloseChat = useCallback((chatId: string) => {
+    setState((prev) => ({
+      ...prev,
+      chats: prev.chats.map((chat) => {
+        if (chat.id !== chatId) return chat;
+        const systemMsg: Message = {
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
+          chatId,
+          authorId: 'system',
+          authorName: 'Система',
+          content: `Чат #${chat.number} закрыт сотрудником <strong>${prev.currentUser?.name}</strong>`,
+          timestamp: Date.now(),
+          type: 'system',
+        };
+        return {
+          ...chat,
+          isClosed: true,
+          closedAt: Date.now(),
+          messages: [...chat.messages, systemMsg],
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  }, []);
+
+  const handleReopenChat = useCallback((chatId: string) => {
+    setState((prev) => ({
+      ...prev,
+      chats: prev.chats.map((chat) => {
+        if (chat.id !== chatId) return chat;
+        const systemMsg: Message = {
+          id: Date.now().toString(36) + Math.random().toString(36).substr(2, 9),
+          chatId,
+          authorId: 'system',
+          authorName: 'Система',
+          content: `Чат #${chat.number} переоткрыт сотрудником <strong>${prev.currentUser?.name}</strong>`,
+          timestamp: Date.now(),
+          type: 'system',
+        };
+        return {
+          ...chat,
+          isClosed: false,
+          closedAt: undefined,
+          assignedTo: prev.currentUser?.id || chat.assignedTo,
+          messages: [...chat.messages, systemMsg],
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  }, []);
+
   // Login screen
   if (!currentUser) {
     return <Login employees={employees} onLogin={handleLogin} />;
@@ -179,6 +230,8 @@ function App() {
               onSendMessage={handleSendMessage}
               onShareChat={handleShareChat}
               onTakeChat={handleTakeChat}
+              onCloseChat={handleCloseChat}
+              onReopenChat={handleReopenChat}
               onUpdateChat={handleUpdateChat}
             />
             {showSidebar && (

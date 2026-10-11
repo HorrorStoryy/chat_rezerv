@@ -45,7 +45,8 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const updateEmptyState = () => {
     if (editorRef.current) {
       const text = editorRef.current.innerText.trim();
-      setIsEmpty(text.length === 0);
+      const hasImages = editorRef.current.querySelector('img') !== null;
+      setIsEmpty(text.length === 0 && !hasImages);
     }
   };
 
@@ -88,10 +89,31 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   };
 
   const handlePaste = (e: React.ClipboardEvent) => {
-    e.preventDefault();
-    
-    // Get clipboard data
     const clipboardData = e.clipboardData;
+    
+    // Check for images in clipboard (screenshots)
+    if (clipboardData.items) {
+      for (let i = 0; i < clipboardData.items.length; i++) {
+        const item = clipboardData.items[i];
+        if (item.type.indexOf('image') !== -1) {
+          e.preventDefault();
+          const blob = item.getAsFile();
+          if (blob) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const imageUrl = event.target?.result as string;
+              document.execCommand('insertImage', false, imageUrl);
+              updateEmptyState();
+            };
+            reader.readAsDataURL(blob);
+          }
+          return;
+        }
+      }
+    }
+    
+    // Handle text paste
+    e.preventDefault();
     const html = clipboardData.getData('text/html');
     const text = clipboardData.getData('text/plain');
 
@@ -178,7 +200,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     const html = editorRef.current.innerHTML;
     const text = editorRef.current.innerText;
 
-    if (text.trim()) {
+    if (text.trim() || editorRef.current.querySelector('img')) {
       onSend(html, text);
       editorRef.current.innerHTML = '';
       setIsEmpty(true);
@@ -188,6 +210,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   const execCommand = (command: string, value?: string) => {
     document.execCommand(command, false, value);
     editorRef.current?.focus();
+    updateEmptyState();
   };
 
   const insertTemplate = (template: typeof templates[0]) => {
@@ -322,6 +345,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
               </div>
             </div>
           )}
+        </div>
+        
+        <div className="ml-auto text-xs text-gray-400">
+          💡 Ctrl+V для вставки скриншотов
         </div>
       </div>
 

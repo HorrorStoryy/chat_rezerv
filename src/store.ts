@@ -55,6 +55,7 @@ export function createChat(creator: Employee, nextNumber: number): { chat: Chat;
     createdBy: creator.id,
     assignedTo: creator.id,
     isShared: false,
+    isClosed: false,
     messages: [
       {
         id: generateId(),

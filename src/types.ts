@@ -26,9 +26,11 @@ export interface Chat {
   createdBy: string;
   assignedTo: string | null;
   isShared: boolean;
+  isClosed: boolean;
   messages: Message[];
   createdAt: number;
   updatedAt: number;
+  closedAt?: number;
 }
 
 export interface AppState {

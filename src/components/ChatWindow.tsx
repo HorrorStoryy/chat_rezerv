@@ -10,6 +10,8 @@ interface ChatWindowProps {
   onSendMessage: (message: Message) => void;
   onShareChat: (chatId: string) => void;
   onTakeChat: (chatId: string) => void;
+  onCloseChat: (chatId: string) => void;
+  onReopenChat: (chatId: string) => void;
   onUpdateChat: (chat: Chat) => void;
 }
 
@@ -20,6 +22,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onSendMessage,
   onShareChat,
   onTakeChat,
+  onCloseChat,
+  onReopenChat,
   onUpdateChat,
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -58,27 +62,52 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 | Назначен: {employees.find(e => e.id === chat.assignedTo)?.name || 'Не назначен'}
               </span>
             )}
+            {chat.isClosed && chat.closedAt && (
+              <span className="ml-2 text-red-500">
+                | Закрыт: {formatFullDate(chat.closedAt)}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex gap-2">
-          {!chat.isShared ? (
-            <button
-              onClick={() => onShareChat(chat.id)}
-              className="px-3 py-1.5 text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
-              title="Переместить в общую папку"
-            >
-              📂 В общие
-            </button>
-          ) : (
-            chat.assignedTo !== currentUser.id && (
+          {!chat.isClosed && (
+            <>
+              {!chat.isShared ? (
+                <button
+                  onClick={() => onShareChat(chat.id)}
+                  className="px-3 py-1.5 text-xs bg-amber-50 text-amber-700 border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors"
+                  title="Переместить в общую папку"
+                >
+                  📂 В общие
+                </button>
+              ) : (
+                chat.assignedTo !== currentUser.id && (
+                  <button
+                    onClick={() => onTakeChat(chat.id)}
+                    className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors"
+                    title="Взять чат в работу"
+                  >
+                    ✋ Взять в работу
+                  </button>
+                )
+              )}
               <button
-                onClick={() => onTakeChat(chat.id)}
-                className="px-3 py-1.5 text-xs bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors"
-                title="Взять чат в работу"
+                onClick={() => onCloseChat(chat.id)}
+                className="px-3 py-1.5 text-xs bg-red-50 text-red-700 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
+                title="Закрыть чат"
               >
-                ✋ Взять в работу
+                🔒 Закрыть
               </button>
-            )
+            </>
+          )}
+          {chat.isClosed && (
+            <button
+              onClick={() => onReopenChat(chat.id)}
+              className="px-3 py-1.5 text-xs bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition-colors"
+              title="Переоткрыть чат"
+            >
+              🔓 Переоткрыть
+            </button>
           )}
         </div>
       </div>
@@ -109,7 +138,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 <div
                   className={`rounded-2xl px-4 py-2.5 ${
                     own
-                      ? 'bg-indigo-600 text-white rounded-br-md'
+                      ? 'bg-amber-50 border border-amber-200 text-gray-800 rounded-br-md'
                       : 'bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm'
                   }`}
                 >
@@ -123,7 +152,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                   ) : (
                     <div
                       className={`text-sm leading-relaxed break-words message-content prose prose-sm max-w-none ${
-                        own ? 'prose-invert' : ''
+                        own ? 'prose-amber' : ''
                       }`}
                       dangerouslySetInnerHTML={{ __html: msg.content }}
                     />
@@ -137,7 +166,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* Rich Text Editor */}
-      <RichTextEditor onSend={handleSend} placeholder="Введите сообщение..." />
+      {!chat.isClosed ? (
+        <RichTextEditor onSend={handleSend} placeholder="Введите сообщение..." />
+      ) : (
+        <div className="bg-gray-100 border-t border-gray-200 px-4 py-3 text-center text-sm text-gray-500">
+          Этот чат закрыт. Переоткройте его, чтобы продолжить переписку.
+        </div>
+      )}
     </div>
   );
 };

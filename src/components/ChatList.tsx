@@ -18,24 +18,40 @@ export const ChatList: React.FC<ChatListProps> = ({
   onCreateChat,
   onSearch,
 }) => {
-  const [activeTab, setActiveTab] = useState<'my' | 'shared'>('my');
+  const [activeTab, setActiveTab] = useState<'my' | 'shared' | 'closed'>('my');
   const [searchQuery, setSearchQuery] = useState('');
 
   const myChats = chats.filter(
-    (c) => c.assignedTo === currentUser.id && !c.isShared
+    (c) => c.assignedTo === currentUser.id && !c.isShared && !c.isClosed
   );
-  const sharedChats = chats.filter((c) => c.isShared);
+  const sharedChats = chats.filter((c) => c.isShared && !c.isClosed);
+  const closedChats = chats.filter((c) => c.isClosed);
 
-  const displayChats = activeTab === 'my' ? myChats : sharedChats;
+  const displayChats = activeTab === 'my' ? myChats : activeTab === 'shared' ? sharedChats : closedChats;
 
   const filteredChats = displayChats.filter((chat) => {
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
-    return (
-      chat.title.toLowerCase().includes(q) ||
-      chat.companyName.toLowerCase().includes(q) ||
-      chat.number.toString().includes(q)
-    );
+    
+    // Поиск по номеру чата
+    if (chat.number.toString().includes(q)) return true;
+    
+    // Поиск по названию компании
+    if (chat.companyName.toLowerCase().includes(q)) return true;
+    
+    // Поиск по заголовку
+    if (chat.title.toLowerCase().includes(q)) return true;
+    
+    // Поиск по содержимому сообщений
+    const hasMatchInMessages = chat.messages.some((msg) => {
+      if (msg.type === 'system') return false;
+      const temp = document.createElement('div');
+      temp.innerHTML = msg.content;
+      const text = temp.textContent || temp.innerText || '';
+      return text.toLowerCase().includes(q);
+    });
+    
+    return hasMatchInMessages;
   });
 
   const getLastMessage = (chat: Chat) => {
@@ -78,7 +94,7 @@ export const ChatList: React.FC<ChatListProps> = ({
           </svg>
           <input
             type="text"
-            placeholder="Поиск по чатам..."
+            placeholder="Поиск по номеру, компании, тексту..."
             value={searchQuery}
             onChange={handleSearch}
             className="w-full pl-9 pr-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300"
@@ -95,7 +111,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            Мои чаты ({myChats.length})
+            Мои ({myChats.length})
           </button>
           <button
             onClick={() => setActiveTab('shared')}
@@ -107,6 +123,16 @@ export const ChatList: React.FC<ChatListProps> = ({
           >
             Общие ({sharedChats.length})
           </button>
+          <button
+            onClick={() => setActiveTab('closed')}
+            className={`flex-1 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              activeTab === 'closed'
+                ? 'bg-white text-gray-700 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Закрытые ({closedChats.length})
+          </button>
         </div>
       </div>
 
@@ -114,7 +140,9 @@ export const ChatList: React.FC<ChatListProps> = ({
       <div className="flex-1 overflow-y-auto">
         {filteredChats.length === 0 ? (
           <div className="p-6 text-center text-gray-400 text-sm">
-            {activeTab === 'my' ? 'Нет чатов. Создайте новый!' : 'Нет общих чатов'}
+            {activeTab === 'my' ? 'Нет чатов. Создайте новый!' : 
+             activeTab === 'shared' ? 'Нет общих чатов' : 
+             'Нет закрытых чатов'}
           </div>
         ) : (
           filteredChats.map((chat) => {
@@ -131,11 +159,18 @@ export const ChatList: React.FC<ChatListProps> = ({
                   <span className="font-semibold text-sm text-gray-800">
                     #{chat.number}
                   </span>
-                  {chat.isShared && (
-                    <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
-                      Общий
-                    </span>
-                  )}
+                  <div className="flex gap-1">
+                    {chat.isClosed && (
+                      <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
+                        Закрыт
+                      </span>
+                    )}
+                    {chat.isShared && !chat.isClosed && (
+                      <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">
+                        Общий
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {chat.companyName && (
                   <p className="text-xs text-gray-500 mb-1">{chat.companyName}</p>
