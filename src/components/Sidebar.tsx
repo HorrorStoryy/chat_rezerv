@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ chat, employees, onUpdateChat,
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-400">Ссылка на сотрудника</p>
+                <p className="text-xs text-gray-400">Ссылка на сотрудника, который обращается в чат</p>
                 {chat.companyLink ? (
                   <a
                     href={chat.companyLink}
@@ -163,7 +163,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ chat, employees, onUpdateChat,
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500">Ссылка на сотрудника</label>
+                <label className="text-xs text-gray-500">Ссылка на сотрудника, который обращается в чат</label>
                 <input
                   type="url"
                   value={companyLink}

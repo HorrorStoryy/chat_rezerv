@@ -170,6 +170,49 @@ function App() {
     }));
   }, []);
 
+  const handleDeleteMessage = useCallback((chatId: string, messageId: string) => {
+    setState((prev) => ({
+      ...prev,
+      chats: prev.chats.map((chat) => {
+        if (chat.id !== chatId) return chat;
+        return {
+          ...chat,
+          messages: chat.messages.map((msg) => {
+            if (msg.id !== messageId) return msg;
+            return {
+              ...msg,
+              isDeleted: true,
+              deletedBy: prev.currentUser?.id,
+              deletedByName: prev.currentUser?.name,
+              deletedAt: Date.now(),
+            };
+          }),
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  }, []);
+
+  const handleToggleImportant = useCallback((chatId: string, messageId: string) => {
+    setState((prev) => ({
+      ...prev,
+      chats: prev.chats.map((chat) => {
+        if (chat.id !== chatId) return chat;
+        return {
+          ...chat,
+          messages: chat.messages.map((msg) => {
+            if (msg.id !== messageId) return msg;
+            return {
+              ...msg,
+              isImportant: !msg.isImportant,
+            };
+          }),
+          updatedAt: Date.now(),
+        };
+      }),
+    }));
+  }, []);
+
   // Login screen
   if (!currentUser) {
     return <Login employees={employees} onLogin={handleLogin} />;
@@ -233,6 +276,8 @@ function App() {
               onCloseChat={handleCloseChat}
               onReopenChat={handleReopenChat}
               onUpdateChat={handleUpdateChat}
+              onDeleteMessage={handleDeleteMessage}
+              onToggleImportant={handleToggleImportant}
             />
             {showSidebar && (
               <Sidebar

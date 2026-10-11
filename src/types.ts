@@ -14,6 +14,11 @@ export interface Message {
   timestamp: number;
   type: 'text' | 'image' | 'system';
   imageUrl?: string;
+  isDeleted?: boolean;
+  deletedBy?: string;
+  deletedByName?: string;
+  deletedAt?: number;
+  isImportant?: boolean;
 }
 
 export interface Chat {

@@ -45,6 +45,7 @@ export const ChatList: React.FC<ChatListProps> = ({
     // Поиск по содержимому сообщений
     const hasMatchInMessages = chat.messages.some((msg) => {
       if (msg.type === 'system') return false;
+      if (msg.isDeleted) return false;
       const temp = document.createElement('div');
       temp.innerHTML = msg.content;
       const text = temp.textContent || temp.innerText || '';
@@ -55,7 +56,7 @@ export const ChatList: React.FC<ChatListProps> = ({
   });
 
   const getLastMessage = (chat: Chat) => {
-    const msgs = chat.messages.filter((m) => m.type !== 'system');
+    const msgs = chat.messages.filter((m) => m.type !== 'system' && !m.isDeleted);
     return msgs.length > 0 ? msgs[msgs.length - 1] : null;
   };
 
@@ -185,7 +186,7 @@ export const ChatList: React.FC<ChatListProps> = ({
                     {lastMsg ? new Date(lastMsg.timestamp).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }) : ''}
                   </span>
                   <span className="text-xs text-gray-400">
-                    {chat.messages.filter(m => m.type !== 'system').length} сообщ.
+                    {chat.messages.filter(m => m.type !== 'system' && !m.isDeleted).length} сообщ.
                   </span>
                 </div>
               </button>
